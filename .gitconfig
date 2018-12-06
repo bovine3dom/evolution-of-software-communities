@@ -11,4 +11,5 @@ clean = "jq --indent 1 \
         \"kernelspec\": {\"display_name\": \"Julia 1.0.x\", \"language\": \"julia\", \"name\": \"julia-1.0\"}} \
         | .cells[].metadata = {} \
         '"
+smudge = "cat"
 required = true
