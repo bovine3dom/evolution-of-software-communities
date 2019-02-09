@@ -21,5 +21,10 @@ function CONCORDIA(X,factors,R)
     inds = [R for _ in 1:length(factors)]
     G = reshape(reduce(⊗,vs)*z,inds...)
 
-    mapreduce(k -> (G[k] - δ(Tuple(k)...))^2,+,pairs(IndexCartesian(),G)|>keys)
+    # people often do this * 100 "to make it into percent"
+    # but I find it easier to read as a decimal
+    (1 - mapreduce(k -> (G[k] - δ(Tuple(k)...))^2,+,pairs(IndexCartesian(),G)|>keys)/R)
+    # 90%+ is great
+    # 50%- is a bit lame
+    # Negative is really bad.
 end
