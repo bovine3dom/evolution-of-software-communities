@@ -557,6 +557,12 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 deps = ["Printf"]
 uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
+[[ProgressMeter]]
+deps = ["Distributed", "Printf", "Random", "Test"]
+git-tree-sha1 = "48058bc11607676e5bbc0b974af79106c6200787"
+uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
+version = "0.9.0"
+
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra", "Test"]
 git-tree-sha1 = "3ce467a8e76c6030d4c3786e7d3a73442017cdc0"
@@ -676,6 +682,12 @@ git-tree-sha1 = "5a28c453f333145a4b4774333d259916c12ccc06"
 uuid = "f3b207a7-027a-5e70-b257-86293d7955fd"
 version = "0.10.0"
 
+[[Strided]]
+deps = ["LinearAlgebra", "Random", "Test", "TupleTools"]
+git-tree-sha1 = "e847369ec8911ee44773b7b9beb68d186fa7c65b"
+uuid = "5e0ebb24-38b0-5f93-81fe-25c709ecae67"
+version = "0.2.4"
+
 [[StructArrays]]
 deps = ["Requires", "Test"]
 git-tree-sha1 = "a04ebea1d50e1f5363c75d651369bf7671572202"
@@ -716,6 +728,18 @@ git-tree-sha1 = "89f8fde6394579580fb75088e45ad95551199c7c"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 version = "0.1.14"
 
+[[TensorDecompositions]]
+deps = ["Distributions", "LinearAlgebra", "ProgressMeter", "Random", "SparseArrays", "StatsBase", "TensorOperations", "Test"]
+path = "/home/olie/.julia/dev/TensorDecompositions"
+uuid = "192bee09-7f27-5365-8a12-1b6f807ba546"
+version = "0.2.0+"
+
+[[TensorOperations]]
+deps = ["LinearAlgebra", "Random", "Strided", "Test", "TupleTools"]
+git-tree-sha1 = "bbc38d24852abfbdcc6f554a8c80e894c2b790b9"
+uuid = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
+version = "1.0.2"
+
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -737,6 +761,12 @@ deps = ["Pkg", "Random", "Test"]
 git-tree-sha1 = "a34a2d588e2d2825602bf14a24216d5c8b0921ec"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.8.1"
+
+[[TupleTools]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "781df0cfac68723c3800eb9344b85bd86f9e424b"
+uuid = "9d95972d-f1c8-5527-a6e0-b4b365fa01f6"
+version = "1.0.2"
 
 [[URIParser]]
 deps = ["Test", "Unicode"]
