@@ -1,11 +1,22 @@
 # Inspired by https://github.com/alessandrobessi/corcondia/blob/master/coreconsistency.py
 
 using LinearAlgebra
+using TensorToolbox
 
 δ(args...) = reduce(==,args) |> Int
 ⊗(a,b) = kron(a,b)
 
-function CONCORDIA(X,factors,R)
+function quick_kron(ts,X)
+    i_x = 1:(size(X) |> length) |> collect
+    Y = similar(X)
+    for (k,t) in reverse(ts |> enumerate |> collect)
+        Y = ttm(X,t,k)
+        X = permutedims(Y,reverse(i_x))
+    end
+    Y
+end
+
+function CORCONDIA(X,factors,R)
     us = []
     ss = []
     vs = []
@@ -16,10 +27,18 @@ function CONCORDIA(X,factors,R)
         push!(vs,v)
     end
 
-    y = mapreduce(u -> u |> transpose, ⊗, us)*X[:]
-    z = mapreduce(s -> s |> Diagonal |> inv, ⊗, ss)*y
-    inds = [R for _ in 1:length(factors)]
-    G = reshape(reduce(⊗,vs)*z,inds...)
+#    y = mapreduce(transpose, ⊗, us)*X[:]
+#    z = mapreduce(inv ∘ Diagonal, ⊗, ss)*y
+#    inds = [R for _ in 1:length(factors)]
+#    G = reshape(reduce(⊗,vs)*z,inds...)
+#    G = G./maximum(G) # Not sure this is justified
+
+# Known issues:
+#   - only supports 3-mode or fewer tensors
+
+    y = quick_kron(transpose.(us),X)
+    z = quick_kron((pinv ∘ Diagonal).(ss),y)
+    G = quick_kron(vs, z)
 
     # people often do this * 100 "to make it into percent"
     # but I find it easier to read as a decimal
