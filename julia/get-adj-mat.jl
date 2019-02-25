@@ -1,5 +1,7 @@
 # include("init.jl")
 
+# I use this with IronRepl, but e.g. Juno or Jupyter Lab would also be fine.
+
 using Rebugger
 using JuliaDB
 using Serialization
@@ -59,7 +61,7 @@ end
 
 ### Inspect decomposition
 
-X = ProcessLibrariesIO.tensor(adj_mats)
+X = ProcessLibrariesIO.tensor(adj_mats);
 
 import Colors
 import GraphPlot
@@ -90,6 +92,10 @@ function show_communities(X, F, r)
         GraphPlot.gplot(g;nodefillc=nodefillarr)
     end
 end
+
+# Other layout still bad. Probably just bugs in GraphPlot.
+g = LightGraphs.DiGraph(adj_mats[end])
+GraphPlot.gplothtml(g; layout=GraphPlot.stressmajorize_layout)
 
 undir = X -> begin X = BitArray(X); (X .| X') |> Array{Float64} end
 Xundir = similar(X);
