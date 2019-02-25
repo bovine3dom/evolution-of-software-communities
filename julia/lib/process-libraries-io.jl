@@ -26,13 +26,23 @@ function dependencies_by_month(versions, dependencies)
     versions = setcol(versions, :Month, :Timestamp => ts -> floor(ts, Dates.Month))
 
     # Latest ID for each project for each month:
-    # groupby will pass a StructArray to the first argument and that will be sorted by the first column, then the second if necessary.
+    # Sort by timestamp, then number
     latest_version_each_month = groupby(
-        (Version_ID=x->sort(x)[1].ID,),
+        (Version_ID=x->sort(x)[end].ID,),
         versions, (:Project_ID, :Month),
-        select=(:Timestamp, :ID))
+        select=(:Timestamp, :Number, :ID))
 
     # Inner join to get only the deps that match a selected versionID
+    # We lose packages here if they don't have any dependents and aren't depended on by anything.
+    lonely_packages = setdiff(
+        versions.columns.Project_ID,
+        dependencies.columns.Project_ID,
+        dependencies.columns.Dependency_Project_ID)
+
+    if length(lonely_packages) > 0
+        @warn "$(length(lonely_packages)) unconnected packages omitted"
+    end
+
     depversions = join(
         select(latest_version_each_month, (:Version_ID, :Month)),
         dependencies, lkey=:Version_ID, rkey=:Version_ID)
@@ -66,12 +76,14 @@ The nth column contains the dependents of package n. The nth row contains the de
 function latest_at_month(deps, month)
     deps = filter(row->row.Month <= month, deps)
 
-    # Get the row with max month for each (:Month, :Project_Node) tuple
-    groupby(
-        (Dependency_Project_Node = row -> sort(row)[1][2],),
-        deps,
-        (:Month, :Project_Node),
-        select=(:Month, :Dependency_Project_Node))
+    # This is kind of slow
+    result = []
+    for project_node in deps.columns.Project_Node |> unique
+        deps_of_pn = filter((row->row.Project_Node == project_node), deps)
+        latest_deps = filter(row -> row.Month == maximum(deps_of_pn.columns.Month), deps_of_pn)
+        push!(result, latest_deps)
+    end
+    reduce(merge, result)
 end
 
 "One project adjacency matrix for each month in deps"
@@ -79,11 +91,11 @@ function monthly_adjacency_matrices(deps)
     months = deps.columns.Month
     months = minimum(months):Dates.Month(1):maximum(months)
     nnodes = number_of_nodes(deps)
-    graphs = [
+    [
         latest_at_month(deps, month) |>
-            t -> graph_from_table(t, nnodes)
+            t -> graph_from_table(t, nnodes) |>
+            LightGraphs.adjacency_matrix
         for month in months]
-    map(LightGraphs.adjacency_matrix, graphs)
 end
 
 function tensor(adj_mats)
