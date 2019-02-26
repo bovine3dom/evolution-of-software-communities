@@ -41,7 +41,8 @@ import Dates
 # Use this to get the name and so on for a given project node number.
 # Quick example for Olie
 which_proj(proj, meta=depversions) = begin
-    meta = filter(row -> row.Project_Node == proj, meta)
+    # select=:Project_Node speeds this up a lot.
+    meta = filter(node_number -> node_number == proj, meta, select=:Project_Node)
     meta = select(meta, (:Project_Name, :Version_Number, :Project_ID,))[end]
 end
 
