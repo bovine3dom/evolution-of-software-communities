@@ -3,6 +3,7 @@ module ProcessLibrariesIO
 export dependencies_by_month, monthly_adjacency_matrices
 
 using JuliaDB
+
 import Dates
 import LightGraphs
 
@@ -47,8 +48,8 @@ function dependencies_by_month(versions, dependencies)
         select(latest_version_each_month, (:Version_ID, :Month)),
         dependencies, lkey=:Version_ID, rkey=:Version_ID)
 
-    # Just need to rekey all project_ids to natural numbers
-    depversions |> _IDs_to_nodes
+    # Just need to rekey all project_ids to natural numbers and reindex
+    depversions |> _IDs_to_nodes |> t -> reindex(t, :Project_Node)
 end
 
 "Number of projects in the table"
@@ -75,15 +76,10 @@ The nth column contains the dependents of package n. The nth row contains the de
 """
 function latest_at_month(deps, month)
     deps = filter(row->row.Month <= month, deps)
-
-    # This is kind of slow
-    result = []
-    for project_node in deps.columns.Project_Node |> unique
-        deps_of_pn = filter((row->row.Project_Node == project_node), deps)
-        latest_deps = filter(row -> row.Month == maximum(deps_of_pn.columns.Month), deps_of_pn)
-        push!(result, latest_deps)
-    end
-    reduce(merge, result)
+    # This allocates memory. Could compute row indexes if we need to.
+    groupby(
+        (x = grp -> filter(row -> row.Month == maximum(grp.Month), grp),),
+        deps, :Project_Node) |> flatten
 end
 
 "One project adjacency matrix for each month in deps"
@@ -91,11 +87,28 @@ function monthly_adjacency_matrices(deps)
     months = deps.columns.Month
     months = minimum(months):Dates.Month(1):maximum(months)
     nnodes = number_of_nodes(deps)
-    [
-        latest_at_month(deps, month) |>
+
+    # This is slow - do it in parallel
+
+    # optimize grouping in latest_at_month
+    if colnames(deps)[1] !== :Project_Node
+        deps = reindex(deps, :Project_Node)
+    end
+
+    # Drop columns we don't need to avoid allocating excess memory
+    deps = select(deps, (:Project_Node, :Month, :Dependency_Project_Node))
+
+    # pre-allocate
+    result = Array{Any}(undef, length(months))
+
+    Threads.@threads for i in 1:length(months)
+        # Can't use enumerate with @threads
+        month = months[i]
+        result[i] = latest_at_month(deps, month) |>
             t -> graph_from_table(t, nnodes) |>
             LightGraphs.adjacency_matrix
-        for month in months]
+    end
+    result
 end
 
 function tensor(adj_mats)

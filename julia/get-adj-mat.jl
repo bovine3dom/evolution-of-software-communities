@@ -1,23 +1,39 @@
 # include("init.jl")
 
+# I use this with IronRepl, but e.g. Juno or Jupyter Lab would also be fine.
+
 using Rebugger
 using JuliaDB
 using Serialization
 
 include("lib/process-libraries-io.jl")
 
-versions = loadtable("../data/playground/elm_versions-1.2.0-2018-03-12.csv")
-dependencies = loadtable("../data/playground/elm_dependencies-1.2.0-2018-03-12.csv")
+function make_depversions_and_adj_mats(platform)
+    versions = loadtable("../data/sample-1.4/$(platform)_versions-1.4.0-2018-12-22.csv")
+    dependencies = loadtable("../data/sample-1.4/$(platform)_dependencies-1.4.0-2018-12-22.csv", type_detect_rows=4000)
 
-depversions = ProcessLibrariesIO.dependencies_by_month(versions, dependencies)
-adj_mats = ProcessLibrariesIO.monthly_adjacency_matrices(depversions);
+    depversions = ProcessLibrariesIO.dependencies_by_month(versions, dependencies)
+    adj_mats = ProcessLibrariesIO.monthly_adjacency_matrices(depversions);
 
-serialize("../data/processed/elm-depversions.jls", depversions)
-serialize("../data/processed/elm-adj-mats.jls", adj_mats)
+    serialize("../data/processed/$(platform)-depversions.jls", depversions)
+    serialize("../data/processed/$(platform)-adj-mats.jls", adj_mats)
+    depversions, adj_mats
+end
 
+"Check ../data/processed and make only if missing"
+function get_depversions_and_adj_mats(platform)
+    if isfile("../data/processed/$(platform)-depversions.jls")
+        adj_mats = deserialize("../data/processed/$(platform)-adj-mats.jls");
+        depversions = deserialize("../data/processed/$(platform)-depversions.jls")
+    else
+        depversions, adj_mats = make_depversions_and_adj_mats(platform)
+    end
+    depversions, adj_mats
+end
+
+depversions, adj_mats = get_depversions_and_adj_mats("NPM");
 
 ### Experiments ###
-
 
 using Plots
 import Dates
@@ -59,7 +75,7 @@ end
 
 ### Inspect decomposition
 
-X = ProcessLibrariesIO.tensor(adj_mats)
+X = ProcessLibrariesIO.tensor(adj_mats);
 
 import Colors
 import GraphPlot
@@ -90,6 +106,10 @@ function show_communities(X, F, r)
         GraphPlot.gplot(g;nodefillc=nodefillarr)
     end
 end
+
+# Other layout still bad. Probably just bugs in GraphPlot.
+g = LightGraphs.DiGraph(adj_mats[end])
+GraphPlot.gplothtml(g; layout=GraphPlot.stressmajorize_layout)
 
 undir = X -> begin X = BitArray(X); (X .| X') |> Array{Float64} end
 Xundir = similar(X);
