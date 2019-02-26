@@ -78,7 +78,7 @@ function latest_at_month(deps, month)
     deps = filter(row->row.Month <= month, deps)
     # This allocates memory. Could compute row indexes if we need to.
     groupby(
-        (x = grp -> filter!(row -> row.Month == maximum(grp.Month), grp),),
+        (x = grp -> filter(row -> row.Month == maximum(grp.Month), grp),),
         deps, :Project_Node) |> flatten
 end
 
