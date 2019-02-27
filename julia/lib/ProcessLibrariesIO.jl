@@ -1,6 +1,10 @@
 module ProcessLibrariesIO
 
-export dependencies_by_month, monthly_adjacency_matrices
+export
+dependencies_by_month,
+monthly_adjacency_matrices,
+get_depversions_and_adj_mats,
+make_depversions_and_adj_mats
 
 using JuliaDB
 
@@ -118,8 +122,6 @@ function tensor(adj_mats)
     X
 end
 
-end
-
 # These should obviously be a Make/Drake/DAG thing, but I haven't bothered to make that.
 
 function make_depversions_and_adj_mats(platform)
@@ -143,4 +145,6 @@ function get_depversions_and_adj_mats(platform)
         depversions, adj_mats = make_depversions_and_adj_mats(platform)
     end
     depversions, adj_mats
+end
+
 end

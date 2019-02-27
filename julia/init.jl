@@ -2,6 +2,8 @@ import Pkg
 Pkg.activate(".")
 Pkg.instantiate()
 
-import HTTP
+using Rebugger
+
+push!(LOAD_PATH, pwd() * "/lib")
 
 include("./lib/corcondia.jl")
