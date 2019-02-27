@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+extract() {
+    local platform="$1"
+    local csv="$2"
+    local dest="$destdir/${platform}_$(basename $csv)"
+    head -n1 "$csv" > "$dest"
+    grep -i ",$platform," "$csv" >> "$dest"
+    echo "$csv Done!"
+}
+
+platform=$1
+destdir=$2
+mkdir -p "$destdir"
+shift 2
+
+for file in "$@"; do
+    extract "$platform" "$file" &
+done
+
+wait
