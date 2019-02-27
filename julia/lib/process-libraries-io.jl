@@ -119,3 +119,28 @@ function tensor(adj_mats)
 end
 
 end
+
+# These should obviously be a Make/Drake/DAG thing, but I haven't bothered to make that.
+
+function make_depversions_and_adj_mats(platform)
+    versions = loadtable("../data/sample-1.4/$(platform)_versions-1.4.0-2018-12-22.csv")
+    dependencies = loadtable("../data/sample-1.4/$(platform)_dependencies-1.4.0-2018-12-22.csv", type_detect_rows=4000)
+
+    depversions = ProcessLibrariesIO.dependencies_by_month(versions, dependencies)
+    adj_mats = ProcessLibrariesIO.monthly_adjacency_matrices(depversions);
+
+    serialize("../data/processed/$(platform)-depversions.jls", depversions)
+    serialize("../data/processed/$(platform)-adj-mats.jls", adj_mats)
+    depversions, adj_mats
+end
+
+"Check ../data/processed and make only if missing"
+function get_depversions_and_adj_mats(platform)
+    if isfile("../data/processed/$(platform)-depversions.jls")
+        adj_mats = deserialize("../data/processed/$(platform)-adj-mats.jls");
+        depversions = deserialize("../data/processed/$(platform)-depversions.jls")
+    else
+        depversions, adj_mats = make_depversions_and_adj_mats(platform)
+    end
+    depversions, adj_mats
+end
