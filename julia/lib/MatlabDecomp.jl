@@ -23,6 +23,7 @@ put_adj_mat_mat
 mat"""
 addpath ../matlab
 addpath ../matlab/tensor_toolbox
+addpath ../matlab/nonnegfac-matlab
 """
 
 function matlab_load_sptensor(adj_mats)
@@ -45,18 +46,51 @@ function _matlab_dict_to_cp(D, r)
     end
 end
 
-function matlab_nncp_loaded_spt(r)
-    mat"$D = ncp(spt, $r, {});"
+"""
+    ncp(r, method="apg")
+
+methods: 'anls_bpp' 'anls_asgroup' 'hals' 'mu' 'apg'
+
+'apg' is the 'apg-tf' method from Xu and Yin 2013.
+
+All others from nonnegfac-matlab Kim and Park 2014.
+
+"""
+function matlab_ncp_loaded_spt(r, method="apg")
+    if method == "apg"
+        mat"$D = ncp_apg(spt, $r, {});"
+    else
+        mat"$D = ncp(spt, $r, 'method', $method);"
+    end
     _matlab_dict_to_cp(D, r)
 end
 
-function matlab_nncp(X, r)
+function relerror_loaded(D)
+    D = Dict(("lambda" => D.lambdas, "u" => Any[D.factors...]))
+    mat"relerror(spt, $D)"
+end
+
+matlab_nncp_loaded_spt(r) = matlab_ncp_loaded_spt(r, "apg")
+
+"""
+    ncp(X, r, method="apg")
+
+methods: `anls_bpp` `anls_asgroup` `hals` `mu` `apg`
+
+`apg` is the `apg-tf` method from Xu and Yin 2013.
+
+All others from nonnegfac-matlab Kim and Park 2014.
+
+"""
+function matlab_ncp(X, r, method="apg")
     mat"""
     X = tensor($X);
     $D = ncp(X, $r, {});
     """
     _matlab_dict_to_cp(D, r)
 end
+
+matlab_nncp(X, r) = matlab_ncp(X, r)
 
 ## Trade .mat files
 
@@ -82,6 +116,13 @@ r = 4;
 D = ncp(X, r, {});
 save(sprintf('data/processed/$platform-D%d.mat', r))
 """)
+end
+
+matlab_load_npm_decomps(r) = begin
+    platform = "NPM"
+    D = MAT.matread("../data/processed/$platform-D$r.mat")["D"]
+    # This might not work for r = 1; but who cares
+    D = CANDECOMP(D["u"]|>Tuple, D["lambda"][:])
 end
 
 end
