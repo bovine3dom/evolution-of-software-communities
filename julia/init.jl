@@ -4,6 +4,7 @@ Pkg.instantiate()
 
 using Rebugger
 
-push!(LOAD_PATH, pwd() * "/lib")
+# This doesn't work with Revise, so it's pretty useless.
+# push!(LOAD_PATH, pwd() * "/lib")
 
 include("./lib/corcondia.jl")
