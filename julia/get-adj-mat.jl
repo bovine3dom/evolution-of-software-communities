@@ -6,7 +6,7 @@ using Rebugger
 using JuliaDB
 using Serialization
 
-include("lib/process-libraries-io.jl")
+include("lib/ProcessLibrariesIO.jl")
 
 depversions, adj_mats = get_depversions_and_adj_mats("Elm");
 
