@@ -7,7 +7,7 @@ extract() {
     local csv="$2"
     local dest="$destdir/${platform}_$(basename $csv)"
     head -n1 "$csv" > "$dest"
-    grep -i ",$platform," "$csv" >> "$dest"
+    grep ",$platform," "$csv" >> "$dest"
     echo "$csv Done!"
 }
 
