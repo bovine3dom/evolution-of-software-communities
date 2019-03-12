@@ -125,9 +125,16 @@ end
 
 # These should obviously be a Make/Drake/DAG thing, but I haven't bothered to make that.
 
+function filter_to_platform(table, platform)
+    filter(row -> row.Platform == platform, table)
+end
+
 function make_depversions_and_adj_mats(platform)
     versions = loadtable("../data/sample-1.4/$(platform)_versions-1.4.0-2018-12-22.csv")
     dependencies = loadtable("../data/sample-1.4/$(platform)_dependencies-1.4.0-2018-12-22.csv", type_detect_rows=4000)
+
+    versions = filter_to_platform(versions, platform)
+    dependences = filter_to_platform(dependences, platform)
 
     depversions = ProcessLibrariesIO.dependencies_by_month(versions, dependencies)
     adj_mats = ProcessLibrariesIO.monthly_adjacency_matrices(depversions);
