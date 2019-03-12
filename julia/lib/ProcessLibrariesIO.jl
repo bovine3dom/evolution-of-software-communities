@@ -6,6 +6,7 @@ monthly_adjacency_matrices,
 get_depversions_and_adj_mats,
 make_depversions_and_adj_mats
 
+using Serialization
 using JuliaDB
 
 import Dates
