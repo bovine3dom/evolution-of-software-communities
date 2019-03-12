@@ -14,79 +14,8 @@ depversions, adj_mats = get_depversions_and_adj_mats("Elm");
 
 ## Decomposition with matlab ##
 
-# Performance
-# Runs NPM iterations at about 0.5 to 1 per minute
-
-## using an attached matlab session
-#
-# This way is a bit clunky and slow compared to just using files.
-
-using MATLAB: @mat_str
-using TensorDecompositions: CANDECOMP
-
-mat"""
-addpath ../matlab
-addpath ../matlab/tensor_toolbox
-"""
-
-function matlab_load_sptensor(adj_mats)
-    sparsefloat(am1) =
-        convert(SparseArrays.SparseMatrixCSC{Float64,Int64}, am1)
-    adj_mats = map(sparsefloat, adj_mats)
-    mat"spt = sparse_matrix_list_to_sptensor($adj_mats)"
-end
-
-"Convert dict from matlab to CANDECOMP struct"
-function _matlab_dict_to_cp(D, r)
-    if r == 1
-        lmbda = Array{Float64}(undef, r)
-        lmbda .= D["lambda"]
-        # Make it a 10x1 array, not a 10x0 array
-        factors = map(permutedims ∘ permutedims, D["u"]|>Tuple)
-        CANDECOMP(factors, lmbda)
-    else
-        CANDECOMP(D["u"]|>Tuple, D["lambda"])
-    end
-end
-
-function matlab_nncp_loaded_spt(r)
-    mat"$D = ncp(spt, $r, {});"
-    _matlab_dict_to_cp(D, r)
-end
-
-function matlab_nncp(X, r)
-    mat"""
-    X = tensor($X);
-    $D = ncp(X, $r, {});
-    """
-    _matlab_dict_to_cp(D, r)
-end
-
-## Trade .mat files
-
-import MAT
-
-function put_adj_mat_mat(platform, adj_mats=missing)
-    filename = "../data/processed/$platform-adj-mats.mat"
-    if isfile(filename)
-        @info "Assuming pre-existing file is fine"
-    else
-        if ismissing(adj_mats)
-            _, adj_mats = get_depversions_and_adj_mats(platform)
-        end
-        MAT.matwrite(filename, Dict("adj_mats"=>adj_mats,))
-    end
-
-    println("""
-        Feed matlab something like this:
-
-load('$filename')
-X = sparse_matrix_list_to_sptensor(adj_mats);
-r = 4;
-D = ncp(X, r, {});
-save(sprintf('data/processed/$platform-D%d.mat', r))
-""")
-end
+# This is defined in lib/MatlabDecomp.jl
+using MatlabDecomp
 
 # These are the same size and basically the same content as adj-mats.jls
 #
