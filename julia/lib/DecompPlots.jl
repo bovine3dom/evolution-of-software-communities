@@ -3,7 +3,7 @@ module DecompPlots
 import Dates
 import ScikitLearn
 using Serialization
-import Plot
+import Plots
 
 include("MatlabDecomp.jl")
 
