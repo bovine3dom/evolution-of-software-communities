@@ -129,30 +129,79 @@ function filter_to_platform(table, platform)
     filter(row -> row.Platform == platform, table)
 end
 
+function platpath(platform)
+    path = "../data/processed/pacman/$platform/"
+    run(`mkdir -p $path`)
+    path
+end
+
 function make_depversions_and_adj_mats(platform)
     versions = loadtable("../data/sample-1.4/$(platform)_versions-1.4.0-2018-12-22.csv")
     dependencies = loadtable("../data/sample-1.4/$(platform)_dependencies-1.4.0-2018-12-22.csv", type_detect_rows=4000)
 
     versions = filter_to_platform(versions, platform)
-    dependences = filter_to_platform(dependences, platform)
+    dependences = filter_to_platform(dependencies, platform)
 
     depversions = ProcessLibrariesIO.dependencies_by_month(versions, dependencies)
     adj_mats = ProcessLibrariesIO.monthly_adjacency_matrices(depversions);
 
-    serialize("../data/processed/$(platform)-depversions.jls", depversions)
-    serialize("../data/processed/$(platform)-adj-mats.jls", adj_mats)
+    ppath = platpath(platform)
+    serialize(ppath * "meta.jls", depversions)
+    serialize(ppath * "adj-mats.jls", adj_mats)
+
     depversions, adj_mats
+end
+
+function get_meta(platform)
+    ppath = platpath(platform)
+    if isfile(ppath * "meta.jls")
+        meta = deserialize(ppath * "meta.jls")
+    else
+        meta = make_depversions_and_adj_mats(platform)[1]
+    end
+    meta
+end
+
+function get_adj_mats(platform)
+    ppath = platpath(platform)
+    if isfile(ppath * "adj-mats.jls")
+        adj_mats = deserialize(ppath * "adj-mats.jls")
+    else
+        adj_mats = make_depversions_and_adj_mats(platform)[2]
+    end
+    adj_mats
 end
 
 "Check ../data/processed and make only if missing"
 function get_depversions_and_adj_mats(platform)
-    if isfile("../data/processed/$(platform)-depversions.jls")
-        adj_mats = deserialize("../data/processed/$(platform)-adj-mats.jls");
-        depversions = deserialize("../data/processed/$(platform)-depversions.jls")
+    ppath = platpath(platform)
+    if isfile(ppath * "meta.jls")
+        adj_mats = deserialize(ppath * "adj-mats.jls")
+        meta = deserialize(ppath * "meta.jls")
     else
-        depversions, adj_mats = make_depversions_and_adj_mats(platform)
+        meta, adj_mats = make_depversions_and_adj_mats(platform)
     end
-    depversions, adj_mats
+    meta, adj_mats
+end
+
+PLATFORMS = [
+   "Elm",
+   "Cargo",
+   "Pypi",
+   "CRAN",
+   "Maven",
+   "NPM",
+  ]
+
+function _make_all()
+    # Printing causes segfaults with @threads.
+    #= oldlogger = Logging.global_logger() =#
+    #= Logging.global_logger(Logging.NullLogger()) =#
+    for p in PLATFORMS
+        get_depversions_and_adj_mats(p)
+        @info "$p done!"
+    end
+    #= Logging.global_logger(oldlogger) =#
 end
 
 end
