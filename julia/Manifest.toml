@@ -600,12 +600,6 @@ git-tree-sha1 = "f47c5d97cf9a8caefa47e9fa9d99d8fda1a65154"
 uuid = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
 version = "0.4.3"
 
-[[Neo4j]]
-deps = ["Base64", "DataFrames", "DocStringExtensions", "HTTP", "JSON", "Missings", "Test"]
-git-tree-sha1 = "b8fe8321b0e17ac6f7b0b4f5df628610024acb11"
-uuid = "d2adbeaf-5838-5367-8a2f-e46d570981db"
-version = "2.0.0"
-
 [[NodeJS]]
 deps = ["Test"]
 git-tree-sha1 = "74b1bd25ec1709609462c1ab4b383dd463c57df9"
