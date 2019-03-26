@@ -1,5 +1,3 @@
-# Node Conservation Society
+# Evolution of communities of software: using tensor decompositions to compare software ecosystems
 
-Authors: Oliver Blanthorn and Colin Caine
-
-We believe the js ecosystem is insecure and we wish to identify the weakest points in this ecosystem with network analysis and perhaps shore them up through the development of simple tools.
+This code was written as part of a paper titled "Evolution of communities of software: using tensor decompositions to compare software ecosystems".
