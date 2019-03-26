@@ -1,0 +1,3 @@
+[submodule "matlab/tensor_toolbox"]
+	path = matlab/tensor_toolbox
+	url = https://gitlab.com/tensors/tensor_toolbox
