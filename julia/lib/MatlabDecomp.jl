@@ -8,7 +8,6 @@ import SparseArrays
 export
 matlab_load_sptensor,
 matlab_nncp_loaded_spt,
-matlab_nncp,
 @mat_str,
 put_adj_mat_mat
 
@@ -23,7 +22,6 @@ put_adj_mat_mat
 mat"""
 addpath ../matlab
 addpath ../matlab/tensor_toolbox
-addpath ../matlab/nonnegfac-matlab
 """
 
 function matlab_load_sptensor(adj_mats)
@@ -49,18 +47,12 @@ end
 """
     ncp(r, method="apg")
 
-methods: 'anls_bpp' 'anls_asgroup' 'hals' 'mu' 'apg'
-
 'apg' is the 'apg-tf' method from Xu and Yin 2013.
-
-All others from nonnegfac-matlab Kim and Park 2014.
 
 """
 function matlab_ncp_loaded_spt(r, method="apg")
     if method == "apg"
         mat"$D = ncp_apg(spt, $r, {});"
-    else
-        mat"$D = ncp(spt, $r, 'method', $method);"
     end
     _matlab_dict_to_cp(D, r)
 end
@@ -71,26 +63,6 @@ function relerror_loaded(D)
 end
 
 matlab_nncp_loaded_spt(r) = matlab_ncp_loaded_spt(r, "apg")
-
-"""
-    ncp(X, r, method="apg")
-
-methods: `anls_bpp` `anls_asgroup` `hals` `mu` `apg`
-
-`apg` is the `apg-tf` method from Xu and Yin 2013.
-
-All others from nonnegfac-matlab Kim and Park 2014.
-
-"""
-function matlab_ncp(X, r, method="apg")
-    mat"""
-    X = tensor($X);
-    $D = ncp(X, $r, {});
-    """
-    _matlab_dict_to_cp(D, r)
-end
-
-matlab_nncp(X, r) = matlab_ncp(X, r)
 
 ## Trade .mat files
 
