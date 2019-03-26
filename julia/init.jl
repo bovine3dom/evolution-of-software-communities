@@ -1,6 +1,6 @@
 import Pkg
 Pkg.activate(".")
-Pkg.instantiate()
+#= Pkg.instantiate() =#
 
 using Rebugger
 
